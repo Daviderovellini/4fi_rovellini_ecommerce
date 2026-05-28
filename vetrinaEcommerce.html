@@ -1,220 +1,125 @@
-```html
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Vetrina - High Delta </title>
+<title>High Delta - Vetrina</title>
 
 <style>
-
-body{
+body {
     margin:0;
     font-family:Arial;
-    background:#1f1f1f;
+    background:linear-gradient(135deg,#0b1c2c,#1f3b5c);
     color:white;
+    animation:fadeIn 1s ease-in;
 }
 
-.container{
-    display:flex;
-}
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
 
-.sidebar{
+.container { display:flex; height:100vh; }
+
+.navbar {
     width:220px;
-    min-height:100vh;
-    background:#2b2b2b;
-    padding:30px;
-    border-right:3px solid #c9a227;
-}
-
-.logo{
-    color:#c9a227;
-    font-size:28px;
-    margin-bottom:40px;
-}
-
-.sidebar a{
-    display:block;
-    margin:20px 0;
-    color:white;
-    text-decoration:none;
-}
-
-.content{
-    flex:1;
-    padding:40px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-    gap:30px;
-}
-
-.card{
-    background:#2d2d2d;
-    border-radius:15px;
-    overflow:hidden;
-    transition:0.3s;
-    animation:fadeIn 1s ease;
-}
-
-.card:hover{
-    transform:translateY(-5px);
-}
-
-.card img{
-    width:100%;
-    height:220px;
-    object-fit:cover;
-}
-
-.card-content{
     padding:20px;
+    background:rgba(255,255,255,0.05);
+    display:flex;
+    flex-direction:column;
 }
 
-button{
-    width:100%;
-    padding:12px;
-    background:#c9a227;
+.navbar a {
+    color:white;
+    margin:5px 0;
+}
+
+.center {
+    flex:1;
+    padding:20px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+
+.card {
+    background:rgba(255,255,255,0.08);
+    padding:15px;
+    border-radius:12px;
+}
+
+button {
+    background:#1e90ff;
     border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
+    padding:8px;
+    color:white;
+    border-radius:6px;
 }
-
-button:hover{
-    background:#f0c94d;
-}
-
-@keyframes fadeIn{
-    from{
-        opacity:0;
-        transform:translateY(20px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
 </style>
 </head>
+
 <body>
-
-<script>
-
-if(localStorage.getItem("isLoggedIn") != "true"){
-    window.location.href = "registrazioneEcommerce.html";
-}
-
-</script>
 
 <div class="container">
 
-<div class="sidebar">
-
-<div class="logo">NewExpedetion</div>
-
-<a href="registrazioneEcommerce.html">Registrazione</a>
-<a href="loginEcommerce.html">Login</a>
-<a href="vetrinaEcommerce.html">Vetrina</a>
-<a href="carrelloEcommerce.html">
-Carrello (<span id="counter">0</span>)
-</a>
-
+<div class="navbar">
+    <a href="registrazioneEcommerce.html">Registrazione</a>
+    <a href="loginEcommerce.html">Login</a>
+    <a href="vetrinaEcommerce.html">Vetrina</a>
+    <a href="carrelloEcommerce.html">Carrello (<span id="cartCount">0</span>)</a>
 </div>
 
-<div class="content">
-
-<h1>I Nostri Jet</h1>
-
-<div class="grid" id="grid"></div>
-
-</div>
+<div class="center" id="products"></div>
 
 </div>
 
 <script>
+if (localStorage.getItem("isLoggedIn") !== "true") {
+    window.location.href = "registrazioneEcommerce.html";
+}
 
-let carrello = JSON.parse(localStorage.getItem("carrello")) || [];
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-aggiornaCounter();
+function updateCart() {
+    document.getElementById("cartCount").innerText = cart.length;
+}
+
+function addToCart(p) {
+    cart.push(p);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCart();
+}
 
 fetch("prodotti.csv")
-.then(response => response.text())
+.then(res => res.text())
 .then(data => {
+    let rows = data.split("\n").slice(1);
+    let container = document.getElementById("products");
 
-    let righe = data.split("\n");
+    rows.forEach(r => {
+        let cols = r.split(",");
 
-    righe.shift();
+        if (cols.length < 6) return;
 
-    righe.forEach(riga => {
+        let product = {
+            nome: cols[0],
+            marca: cols[1],
+            descrizione: cols[2],
+            prezzo: cols[4],
+            dimensioni: cols[5]
+        };
 
-        let colonne = riga.split(",");
-
-        let nome = colonne[0];
-        let marca = colonne[1];
-        let descrizione = colonne[2];
-        let immagine = colonne[3];
-        let prezzo = colonne[4];
-        let dimensioni = colonne[5];
-        let taglia = colonne[6];
-        let spedizione = colonne[7];
-
-        let card = document.createElement("div");
-        card.classList.add("card");
-
-        card.innerHTML = `
-        
-        <img src="${immagine}">
-        
-        <div class="card-content">
-        
-        <h2>${nome}</h2>
-        <h3>${marca}</h3>
-        <p>${descrizione}</p>
-        <p><b>Dimensioni:</b> ${dimensioni}</p>
-        <p><b>Taglia:</b> ${taglia}</p>
-        <p><b>Spedizione:</b> ${spedizione}</p>
-        <p><b>Prezzo:</b> € ${prezzo}</p>
-
-        <button onclick='aggiungiCarrello(${JSON.stringify({
-            nome,
-            prezzo
-        })})'>
-        Aggiungi al carrello
-        </button>
-
-        </div>
-        
+        let div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+            <h3>${product.nome}</h3>
+            <p>${product.descrizione}</p>
+            <p>€ ${product.prezzo}</p>
+            <button onclick='addToCart(${JSON.stringify(product)})'>Aggiungi</button>
         `;
 
-        document.getElementById("grid").appendChild(card);
-
+        container.appendChild(div);
     });
-
 });
 
-function aggiungiCarrello(prodotto){
-
-    carrello.push(prodotto);
-
-    localStorage.setItem("carrello", JSON.stringify(carrello));
-
-    aggiornaCounter();
-
-    alert("Jet aggiunto al carrello!");
-
-}
-
-function aggiornaCounter(){
-
-    document.getElementById("counter").innerText = carrello.length;
-
-}
-
+updateCart();
 </script>
 
 </body>
 </html>
-```
