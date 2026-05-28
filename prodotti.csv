@@ -1,0 +1,4 @@
+nome,marca,descrizione,immagine,prezzo,dimensioni,taglia,spedizione
+Gulfstream G650,Gulfstream,Jet privato di lusso,img/jet1.jpg,45000000,30m,Large,Internazionale
+Cessna Citation X,Cessna,Jet rapido e moderno,img/jet2.jpg,23000000,22m,Medium,Europa
+Bombardier Global 7500,Bombardier,Prestazioni elevate e comfort premium,img/jet3.jpg,54000000,33m,Large,Worldwide
