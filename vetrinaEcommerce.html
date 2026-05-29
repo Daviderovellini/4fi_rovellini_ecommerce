@@ -7,7 +7,7 @@
 <style>
 body {
     margin:0;
-    font-family:Arial;
+    font-family:Arial, sans-serif;
     background:linear-gradient(135deg,#0b1c2c,#1f3b5c);
     color:white;
     animation:fadeIn 1s ease-in;
@@ -28,6 +28,11 @@ body {
 .navbar a {
     color:white;
     margin:5px 0;
+    text-decoration: none;
+}
+
+.navbar a:hover {
+    text-decoration: underline;
 }
 
 .center {
@@ -36,20 +41,54 @@ body {
     display:grid;
     grid-template-columns:repeat(2,1fr);
     gap:15px;
+    overflow-y: auto;
 }
 
 .card {
     background:rgba(255,255,255,0.08);
     padding:15px;
     border-radius:12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background-color: rgba(0,0,0,0.2);
+}
+
+.brand {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #1e90ff;
+    margin: 0;
+}
+
+.specs {
+    font-size: 0.9em;
+    color: #ccc;
+    margin: 5px 0;
 }
 
 button {
     background:#1e90ff;
     border:none;
-    padding:8px;
+    padding:10px;
     color:white;
     border-radius:6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: #0076e4;
 }
 </style>
 </head>
@@ -60,7 +99,7 @@ button {
 
 <div class="navbar">
     <a href="registrazioneEcommerce.html">Registrazione</a>
-    <a href="loginEcommerce.html">Login</a>
+    <a href="loginEcommerce.html font-weight: bold;">Login</a>
     <a href="vetrinaEcommerce.html">Vetrina</a>
     <a href="carrelloEcommerce.html">Carrello (<span id="cartCount">0</span>)</a>
 </div>
@@ -93,25 +132,40 @@ fetch("prodotti.csv")
     let container = document.getElementById("products");
 
     rows.forEach(r => {
+        if (!r.trim()) return; // Salta le righe vuote
         let cols = r.split(",");
 
-        if (cols.length < 6) return;
+        // Controllo aggiornato a 8 colonne per il tuo nuovo CSV
+        if (cols.length < 8) return;
 
         let product = {
             nome: cols[0],
             marca: cols[1],
             descrizione: cols[2],
+            immagine: cols[3],
             prezzo: cols[4],
-            dimensioni: cols[5]
+            dimensioni: cols[5],
+            taglia: cols[6],
+            spedizione: cols[7]
         };
+
+        // Formatta il prezzo per renderlo leggibile (es: 45000000 -> 45.000.000)
+        let prezzoFormattato = Number(product.prezzo).toLocaleString('it-IT');
 
         let div = document.createElement("div");
         div.className = "card";
         div.innerHTML = `
-            <h3>${product.nome}</h3>
-            <p>${product.descrizione}</p>
-            <p>€ ${product.prezzo}</p>
-            <button onclick='addToCart(${JSON.stringify(product)})'>Aggiungi</button>
+            <div>
+                <img src="${product.immagine}" alt="${product.nome}" class="product-img" onerror="this.src='https://via.placeholder.com/300x180?text=Jet+Non+Disponibile'">
+                <p class="brand">${product.marca}</p>
+                <h3>${product.nome}</h3>
+                <p>${product.descrizione}</p>
+                <p class="specs"><strong>Dim.:</strong> ${product.dimensioni} | <strong>Sped.:</strong> ${product.spedizione}</p>
+            </div>
+            <div>
+                <p style="font-size: 1.2em; font-weight: bold; margin: 10px 0 0 0;">€ ${prezzoFormattato}</p>
+                <button onclick='addToCart(${JSON.stringify(product).replace(/'/g, "&apos;")})'>Aggiungi al carrello</button>
+            </div>
         `;
 
         container.appendChild(div);
